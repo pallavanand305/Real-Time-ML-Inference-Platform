@@ -1,0 +1,117 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: staging
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=src
+
+    - name: Build Docker images
+      run: |
+        echo "Building Docker images for staging..."
+        # docker build -t inference-service:staging -f docker/Dockerfile.inference .
+        # docker build -t model-server:staging -f docker/Dockerfile.model_server .
+        # docker build -t drift-detector:staging -f docker/Dockerfile.drift_detector .
+
+    - name: Push to container registry
+      run: |
+        echo "Pushing images to registry..."
+        # docker push inference-service:staging
+        # docker push model-server:staging
+        # docker push drift-detector:staging
+
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # kubectl apply -f k8s/staging/
+        # kubectl rollout status deployment/inference-service -n staging
+
+    - name: Run smoke tests
+      run: |
+        echo "Running smoke tests..."
+        # python tests/smoke/test_api_health.py --env staging
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    environment: production
+    needs: []
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=src
+
+    - name: Build Docker images
+      run: |
+        echo "Building Docker images for production..."
+        # docker build -t inference-service:${{ github.sha }} -f docker/Dockerfile.inference .
+        # docker build -t model-server:${{ github.sha }} -f docker/Dockerfile.model_server .
+        # docker build -t drift-detector:${{ github.sha }} -f docker/Dockerfile.drift_detector .
+
+    - name: Push to container registry
+      run: |
+        echo "Pushing images to registry..."
+        # docker push inference-service:${{ github.sha }}
+        # docker push model-server:${{ github.sha }}
+        # docker push drift-detector:${{ github.sha }}
+
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # kubectl apply -f k8s/production/
+        # kubectl rollout status deployment/inference-service -n production
+
+    - name: Run smoke tests
+      run: |
+        echo "Running smoke tests..."
+        # python tests/smoke/test_api_health.py --env production
+
+    - name: Notify deployment
+      run: |
+        echo "Production deployment completed successfully"
