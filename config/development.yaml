@@ -1,0 +1,86 @@
+environment: development
+
+inference_service:
+  host: 0.0.0.0
+  port: 8000
+  workers: 2
+  timeout_seconds: 5
+  log_level: DEBUG
+
+  cache:
+    enabled: true
+    ttl_seconds: 300
+    max_retries: 2
+
+  model_server:
+    url: http://localhost:8001
+    timeout_ms: 4000
+    circuit_breaker:
+      failure_threshold: 0.5
+      recovery_timeout_seconds: 60
+
+  event_stream:
+    enabled: true
+    buffer_size: 1000
+    flush_interval_ms: 100
+
+model_server:
+  host: 0.0.0.0
+  port: 8001
+  workers: 2
+  max_models_in_memory: 5
+  model_cache_size_mb: 2048
+
+redis:
+  host: localhost
+  port: 6379
+  db: 0
+  max_connections: 50
+  socket_timeout: 5
+  socket_connect_timeout: 5
+
+kafka:
+  bootstrap_servers:
+    - localhost:9092
+  topics:
+    inference_events: inference-events-dev
+    drift_alerts: model-drift-alerts-dev
+  producer:
+    acks: 1
+    compression_type: snappy
+    max_in_flight_requests: 5
+    retries: 3
+    linger_ms: 10
+    batch_size: 16384
+
+postgres:
+  host: localhost
+  port: 5432
+  database: mlflow
+  user: mlflow
+  password: mlflow
+  pool_size: 10
+  max_overflow: 20
+
+mlflow:
+  tracking_uri: http://localhost:5000
+  artifact_root: s3://ml-models-dev
+
+s3:
+  bucket: ml-models-dev
+  region: us-east-1
+
+drift_detector:
+  check_interval_seconds: 3600
+  baseline_window_hours: 168
+  current_window_hours: 24
+  thresholds:
+    feature_drift_warning: 0.1
+    feature_drift_critical: 0.3
+    prediction_drift_warning: 0.1
+    prediction_drift_critical: 0.25
+
+monitoring:
+  prometheus:
+    port: 9090
+  metrics_interval_seconds: 15

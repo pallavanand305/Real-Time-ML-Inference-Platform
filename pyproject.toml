@@ -1,0 +1,121 @@
+[tool.poetry]
+name = "real-time-ml-inference-platform"
+version = "0.1.0"
+description = "Production-grade real-time ML inference platform with FastAPI, Redis caching, Kafka streaming, and MLflow registry"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.109.0"
+uvicorn = {extras = ["standard"], version = "^0.27.0"}
+pydantic = "^2.5.0"
+redis = {extras = ["hiredis"], version = "^5.0.1"}
+kafka-python = "^2.0.2"
+mlflow = "^2.10.0"
+boto3 = "^1.34.0"
+psycopg2-binary = "^2.9.9"
+sqlalchemy = "^2.0.25"
+prometheus-client = "^0.19.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-multipart = "^0.0.6"
+aiofiles = "^23.2.1"
+httpx = "^0.26.0"
+tenacity = "^8.2.3"
+pyyaml = "^6.0.1"
+numpy = "^1.26.0"
+scipy = "^1.12.0"
+scikit-learn = "^1.4.0"
+onnxruntime = "^1.16.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+pytest-asyncio = "^0.23.3"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.12.0"
+ruff = "^0.1.14"
+mypy = "^1.8.0"
+black = "^24.1.0"
+pre-commit = "^3.6.0"
+hypothesis = "^6.98.0"
+locust = "^2.20.0"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "kafka.*",
+    "mlflow.*",
+    "prometheus_client.*",
+    "scipy.*",
+    "sklearn.*",
+    "onnxruntime.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-fail-under=80",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["*/tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
